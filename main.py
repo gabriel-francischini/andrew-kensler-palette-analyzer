@@ -24,16 +24,19 @@ def read_gimp_palette(filename = "wolfpower.gpl"):
 def ciede2000_from_rgb(rgb_A, rgb_B):
     return ciede2000(rgb2lab(rgb_A), rgb2lab(rgb_B))
 
-def ciede2000_matrix_from_rgb(rgb_list):
-    # Creates a NxN matrix of CIEDE2000 differences
+def matrix_from_rgb_comparator(rgb_list, comparator=ciede2000_from_rgb):
     matrix = []
     for color in rgb_list:
-        matrix.append(list(map(functools.partial(ciede2000_from_rgb, color),
+        matrix.append(list(map(functools.partial(comparator, color),
                                rgb_list)))
     return matrix
 
-def calculate_threshold(rgb_list):
-    matrix = csr_matrix(ciede2000_matrix_from_rgb(rgb_list))
+def ciede2000_matrix_from_rgb(rgb_list):
+    # Creates a NxN matrix of CIEDE2000 differences
+    return matrix_from_rgb_comparator(rgb_list, ciede2000_from_rgb)
+
+def calculate_threshold(rgb_list, matrix_function=ciede2000_matrix_from_rgb):
+    matrix = csr_matrix(matrix_function(rgb_list))
     tcsr = minimum_spanning_tree(matrix)
     return functools.reduce(max, [max(i) for i in tcsr.toarray().astype(float)])
 
