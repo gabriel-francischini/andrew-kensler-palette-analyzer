@@ -70,8 +70,9 @@ def read_gimp_palette(filename):
                 raise KeyError("Can't parse line")
             if rgb != (0, 0, 0): # Skip placeholder colors
                 data.append(rgb)
+    data_order = tuple(data)
     data = set(data)
-    data = sorted(list(data))
+    data = sorted(list(data), key=lambda x: data_order.index(x))
     return data
 
 def ciede2000_from_rgb(rgb_A, rgb_B):
