@@ -112,7 +112,7 @@ def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
 
     def replace_color(color):
         if color <= threshold:
-            return int(round(color))
+            return color
         else:
             return 0
     filtered_matrix = [list(map(replace_color, x)) for x in matrix]
