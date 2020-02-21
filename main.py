@@ -42,10 +42,25 @@ def read_gimp_palette(filename = "wolfpower.gpl"):
         firstline = datafile.readline()
         if firstline.strip() != "GIMP Palette":
             raise TypeError("It's not a GIMP Palette file")
-        secondline = datafile.readline()
         for line in datafile:
+            if line.startswith('#'):
+                continue
+            if len(line.strip()) < 3:
+                continue
             items = [x.strip() for x in line.split() if len(x.strip()) > 0]
-            rgb = tuple([int(x) for x in items if x.isdigit()])
+            rgb = tuple([int(x) for x in items[:3] if x.isdigit()])
+            if len(rgb) > 3:
+                rgb = rgb[:3]
+            if len(rgb) == 0:
+                continue
+            if len(rgb) < 3:
+                # print(line)
+                # print(items)
+                # print(rgb)
+                print(line)
+                print(items)
+                print(rgb)
+                raise KeyError("Can't parse line")
             if rgb != (0, 0, 0): # Skip placeholder colors
                 data.append(rgb)
     data = set(data)
