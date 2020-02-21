@@ -103,19 +103,11 @@ def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
                filename='CIEDE2000', verbose=False, render=True,
                threshold_calculator=calculate_threshold, colorize=lambda x: x):
     matrix = matrix_function(rgb_list)
-    threshold = calculate_threshold(rgb_list, matrix_function)
-    graph = Graph('G', filename=filename+'.gv', format='png')
-    graph.attr(label=r'\n\n'+filename)
-    graph.attr(fontsize='20')
-
-    nodes = {}
-    for i in range(len(rgb_list)):
-        nodes[i] = rgb2hex(*rgb_list[i]).upper()
-        graph.node(nodes[i],
-                   shape='circle',
-                   style='filled',
-                   color=rgb2hex(*rgb_list[i]),
-                   fontcolor=rgb2hex(*rgb2gray_rgb(inverse_rgb(rgb_list[i]))))
+    threshold = threshold_calculator(rgb_list, matrix_function)
+    graph = Graph('G', filename=filename+'.gv', format='png',
+                  graph_attr={"fontname": "Ubuntu Mono"},
+                  edge_attr={"fontname": "Ubuntu Mono"},
+                  node_attr={"fontname": "Ubuntu Mono"})
 
     def replace_color(color):
         if color <= threshold:
