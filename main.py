@@ -127,7 +127,12 @@ def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
     edges = set()
     for i in range(len(rgb_list)):
         for j in range(len(rgb_list)):
-            if filtered_matrix[i][j] != 0:
+            # Sanitize input
+            if filtered_matrix[i][j] != filtered_matrix[j][i]:
+                for k, l in [(i, j), (j, i)]:
+                    filtered_matrix[k][l] = max(filtered_matrix[i][j],
+                                                filtered_matrix[j][i])
+            if filtered_matrix[i][j] > 0:
                 edges.add(tuple(sorted((i, j))))
 
     connections_histogram = {}
