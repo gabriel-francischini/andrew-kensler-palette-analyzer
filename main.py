@@ -5,6 +5,8 @@ from scipy.sparse.csgraph import minimum_spanning_tree
 import functools
 from graphviz import Graph
 import colorsys
+import math
+import os
 
 
 def rgb2hex(r, g, b):
