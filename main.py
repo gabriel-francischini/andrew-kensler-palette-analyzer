@@ -16,6 +16,13 @@ def inverse_rgb(rgb):
     inverse = (255 - rgb[0], 255 - rgb[1], 255 - rgb[2])
     return inverse
 
+def average_rgb(rgb_A, rgb_B):
+    rint = lambda x: int(round(x))
+    diff = lambda x, y: rint(math.fabs(x-y)/2)
+    diff_pos = lambda x: diff(rgb_A[x], rgb_B[x])
+    return tuple([diff_pos(x) for x in [0, 1, 2]])
+
+
 def round_by_step(value, step):
     return round(float(value) / step) * step
 
