@@ -66,10 +66,16 @@ def ciede2000_matrix_from_rgb(rgb_list):
     # Creates a NxN matrix of CIEDE2000 differences
     return matrix_from_rgb_comparator(rgb_list, ciede2000_from_rgb)
 
-def calculate_threshold(rgb_list, matrix_function=ciede2000_matrix_from_rgb):
-    matrix = csr_matrix(matrix_function(rgb_list))
+def mst_matrix_from_matrix(matrix):
+    # Minimum Spanning Tree
+    matrix = csr_matrix(matrix)
     tcsr = minimum_spanning_tree(matrix)
-    return functools.reduce(max, [max(i) for i in tcsr.toarray().astype(float)])
+    return [[y for y in x] for x in tcsr.toarray().astype(float)]
+
+def calculate_threshold(rgb_list, matrix_function=ciede2000_matrix_from_rgb):
+    tcsr = mst_matrix_from_matrix(matrix_function(rgb_list))
+    return functools.reduce(max, [max(i) for i in tcsr])
+
 
 def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
                filename='CIEDE2000', verbose=False):
