@@ -135,6 +135,26 @@ def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
             if filtered_matrix[i][j] > 0:
                 edges.add(tuple(sorted((i, j))))
 
+    nodes_list = set()
+    nodes = {}
+    for i, j in edges:
+        for i in [i, j]:
+            nodes_list.add(rgb_list[i])
+    for i in range(len(rgb_list)):
+        nodes[i] = ("Index {: >3}\nRGB {: >3} {: >3} {: >3}\nHSV {:.2f} {:.2f} {:.2f}\nHEX {}"
+                    .format(i,
+                            *rgb_list[i],
+                            *rgb_to_hsv(*rgb_list[i]),
+                            rgb2hex(*rgb_list[i]).upper()))
+
+    for i in range(len(rgb_list)):
+        if rgb_list[i] in nodes_list:
+            graph.node(nodes[i],
+                       shape='square',
+                       style='filled',
+                       color=rgb2hex(*colorize(rgb_list[i])),
+                       fontcolor=rgb2hex(*rgb2gray_rgb(inverse_rgb(colorize(rgb_list[i])))))
+
     connections_histogram = {}
     for i, j in edges:
         graph.edge(nodes[i], nodes[j], label=str(filtered_matrix[i][j]))
