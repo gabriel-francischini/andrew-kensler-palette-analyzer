@@ -38,7 +38,12 @@ def rgb2gray_rgb(rgb):
         l = 255
     return (l, l, l)
 
-def read_gimp_palette(filename = "wolfpower.gpl"):
+def rgb_to_hsv(r, g, b):
+    R, G, B = colorsys.rgb_to_hsv(r, g, b)
+    B = B/100
+    return (R, G, B)
+
+def read_gimp_palette(filename):
     data = []
     with open(filename, 'r') as datafile:
         firstline = datafile.readline()
@@ -95,7 +100,8 @@ def calculate_threshold(rgb_list, matrix_function=ciede2000_matrix_from_rgb):
 
 
 def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
-               filename='CIEDE2000', verbose=False):
+               filename='CIEDE2000', verbose=False, render=True,
+               threshold_calculator=calculate_threshold, colorize=lambda x: x):
     matrix = matrix_function(rgb_list)
     threshold = calculate_threshold(rgb_list, matrix_function)
     graph = Graph('G', filename=filename+'.gv', format='png')
@@ -145,6 +151,45 @@ def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
     graph.view()
 
 
-colors = tuple(read_gimp_palette())
-threshold = calculate_threshold(colors)
-view_graph(colors, verbose=True)
+from os import listdir
+from os.path import isfile, join
+files = [f for f in listdir("./") if isfile(join("./", f))]
+for filepath in files:
+    if not filepath.endswith('.gpl'):
+        continue
+    filename = filepath.replace('.gpl', '')
+    print('Processing "{}"...'.format(filename))
+    colors = tuple(read_gimp_palette(filepath))
+    threshold = max(calculate_threshold(colors), 20)
+    filtered_matrix = view_graph(colors, verbose=False, render=False)
+    mst = mst_matrix_from_matrix(filtered_matrix)
+    view_graph(colors, matrix_function=lambda x: mst, verbose=False,
+               filename='{}-ramp'.format(filename),
+               render=True, threshold_calculator=lambda x,y: threshold)
+    view_graph(colors, filename='{}-diagram'.format(filename),
+               verbose=False,
+               render=True, threshold_calculator=lambda x,y: threshold)
+
+    # def only_luminance(rgb):
+    #     h, s, v = colorsys.rgb_to_hsv(*rgb)
+    #     return colorsys.hsv_to_rgb(h, 0, v)
+
+    # view_graph(colors, filename='{}-value-diagram'.format(filename),
+    #            verbose=False,
+    #            render=True, threshold_calculator=lambda x,y: threshold,
+    #            colorize=only_luminance)
+
+# thresholds = set()
+# for i in filtered_matrix:
+#     list(map(thresholds.add, i))
+# thresholds = [i for i in thresholds if i > 0]
+# thresholds.sort()
+
+# for i in range(len(thresholds)):
+#     view_graph(colors,
+#                filename=('CIEDE2000-{:0>'
+#                          + str(len(str(len(thresholds))))
+#                          + '}').format(i),
+#                render=True, threshold_calculator=lambda x, y: thresholds[i])
+
+print("Done.")
