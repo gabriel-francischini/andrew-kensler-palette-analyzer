@@ -157,23 +157,47 @@ def view_graph(rgb_list, matrix_function=ciede2000_matrix_from_rgb,
 
     connections_histogram = {}
     for i, j in edges:
-        graph.edge(nodes[i], nodes[j], label=str(filtered_matrix[i][j]))
+        graph.edge(nodes[i], nodes[j],
+                   label='<<font color="#f44336"><b>{:.2f}</b></font>>'
+                   .format(round_by_step(filtered_matrix[i][j], 0.01)),
+                   _attributes={
+                       "penwidth": "{}".format(
+                           10/math.log(filtered_matrix[i][j], 2)),
+                       "color": "{}:{}".format(rgb2hex(*colorize(rgb_list[i])),
+                                               rgb2hex(*colorize(rgb_list[j]))),
+                   })
         for i in [i, j]:
             connections_histogram[i] = connections_histogram.get(i, 0) + 1
 
     max_edges = max(list(connections_histogram.values()))
     max_digits = int(len(str(max_edges)))
+    graph.attr(label=r'\n\n{}, threshold={:.2f}, nodes={}, edges={}'
+               .format(filename, round_by_step(threshold, 0.01),
+                       len(nodes_list), len(edges)))
+    graph.attr(fontsize='44')
+
     if verbose:
+        edges_copy = set(tuple(edges))
         for i, j in list(edges):
-            edges.add((j, i))
-        for i, j in list(sorted(edges,
+            edges_copy.add((j, i))
+        for i, j in list(sorted(edges_copy,
                                 key=lambda x: (connections_histogram[x[0]], x))):
-            print(("{} ({: >" + str(max_digits) + "} con.)" " -- {: >3} --"
+            print(("{} ({: >" + str(max_digits) + "} con.)" " -- {: >5.2f} --"
                    "{} ({: >" + str(max_digits) + "} con.)")
-                  .format(nodes[i], connections_histogram[i],
-                          int(round(filtered_matrix[i][j])),
-                          nodes[j], connections_histogram[j]))
-    graph.view()
+                  .format(nodes[i].replace('\n', ' '), connections_histogram[i],
+                          filtered_matrix[i][j],
+                          nodes[j].replace('\n', ' '), connections_histogram[j]))
+        print(' '*40)
+        for k, v in list(sorted(connections_histogram.items(),
+                                key=lambda x: x[1], reverse=True)):
+            #print("{} <-> {}".format(nodes[k].replace('\n', ' '), v))
+            if verbose:
+                print("{: >3} {: >3} {: >3}\t{}"
+                      .format(*rgb_list[k], rgb2hex(*rgb_list[k]).upper()))
+
+    if render:
+        graph.render()
+    return filtered_matrix
 
 
 from os import listdir
